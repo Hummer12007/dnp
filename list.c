@@ -17,11 +17,10 @@ void list_append(list_t *list, void *itemp) {
 }
 
 void *list_search(void *key, list_t *base, int (*cmp)(void *, void *)) {
-	list_t *curr = base;
-	while (curr) {
-		if (!cmp(key, curr->data))
-			return curr->data;
-		curr = curr->next;
+	while (base) {
+		if (!cmp(key, base->data))
+			return base->data;
+		base = base->next;
 	}
 	return NULL;
 }
