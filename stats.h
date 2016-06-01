@@ -90,4 +90,4 @@ void level_up(struct pkmn *);
 uint8_t throw_dice(enum dice, int count, struct pkmn *);
 struct attack_result attack(struct pkmn *, struct pkmn *, struct action *, struct action *);
 struct attrs add_attrs(struct attrs, struct attrs);
-#endif
+#endif //STATS_H
