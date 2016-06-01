@@ -12,7 +12,7 @@ struct attrs base_attrs = { 5, 5, 10, 5, 5, 1 };
 static size_t attr_offsets[6] = {so(STR), so(DEF), so(CON), so(MAG), so(DEX), so(LCK)};
 #undef so
 static size_t increments[6] = {1, 1, 1, 1, 1, 1};
-int attack_efficiency[SP_SENTINEL][SP_SENTINEL] = {{0, 5, -5, 10}, {5, 0, 10, -5}, {-5, 5, 0, 10}, {-10, 5, 10, 0}};
+int attack_efficiency[SP_NONE][SP_NONE] = {{0, 5, -5, 10}, {5, 0, 10, -5}, {-5, 5, 0, 10}, {-10, 5, 10, 0}};
 struct attrs attr_caps = {-1, -1, -1, -1, -1, 20};
 
 #define gattr(x, attr) ((int8_t *)((int8_t *)(&(x)) + attr_offsets[attr]))
@@ -84,7 +84,7 @@ static enum attack_outcome calc_attack_success(struct pkmn *first, struct pkmn *
 		if (a->data.spell.harming) {
 			enum attack_outcome o;
 			uint8_t d1 = throw_dice(D20, 1, first) + first->attrs.MAG;
-			int8_t d2  = attack_efficiency[a->data.spell.specialization][target->cls->spec];
+			int8_t d2 = (a->data.spell.specialization == SP_NONE) ? 0 : attack_efficiency[a->data.spell.specialization][target->cls->spec];
 			int8_t dc = DC_BASE + a->data.dc_mod + first->attrs.MAG - target->attrs.MAG;
 			uint8_t saving_throw = dc < 10 ? 10 : (uint8_t) dc;
 			if (d2 < 0 && (d2 & ~0x7F) > d1)

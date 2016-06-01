@@ -18,7 +18,7 @@ struct attrs {
 
 #define attrs(...) ((struct attrs){.STR = 0, .DEF = 0, .CON = 0, .MAG = 0, .DEX = 0, .LCK = 0, __VA_ARGS__ })
 
-enum specialization { SP_FIRE, SP_WATER, SP_LIGHT, SP_DARK, SP_SENTINEL };
+enum specialization { SP_FIRE, SP_WATER, SP_LIGHT, SP_DARK, SP_NONE };
 
 enum action_type { ACT_MELEE, ACT_SPELL, ACT_BUFF };
 
@@ -84,10 +84,16 @@ struct attack_result {
 enum dice {D2 = 2, D4 = 4, D6 = 6, D8 = 8, D10 = 10, D12 = 12, D20 = 20};
 
 extern struct attrs base_attrs;
-extern int attack_efficiency[SP_SENTINEL][SP_SENTINEL];
+extern int attack_efficiency[SP_NONE][SP_NONE];
 
 void level_up(struct pkmn *);
 uint8_t throw_dice(enum dice, int count, struct pkmn *);
 struct attack_result attack(struct pkmn *, struct pkmn *, struct action *, struct action *);
 struct attrs add_attrs(struct attrs, struct attrs);
+
+struct attrs attrs_from_vector(int attrs[6]);
+struct pk_class *make_class(char *name, enum specialization, int attrs[6]);
+struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8_t str, enum dice d_type, uint8_t d_count);
+struct action *spell_action(char *name, enum specialization spec, enum target trgt, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count);
+struct action *buff_action(char *name, enum target target, uint8_t speed_penalty, uint8_t dc, struct attrs dattrs);
 #endif //STATS_H
