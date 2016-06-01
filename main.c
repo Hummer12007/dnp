@@ -9,7 +9,6 @@
 int main() {
 	char *buf;
 	char prompt[255];
-	int i = 0;
 	sprintf(prompt, "%s%s>%s%s",
 		format_str(C_BOLD | C_UL, C_FMT_ON),
 		format_str(C_MAGENTA, C_LIGHT),

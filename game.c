@@ -19,15 +19,11 @@ struct pkmn *gen_pokemon(struct pk_class *cls, uint8_t lvl) {
 }
 
 struct pk_class test = {"default", SP_FIRE, attrs(.LCK = 3)};
-struct action melee = {"melee", ACT_MELEE, TARGET_OPP, 3, {5, {3, D2, 3}, {0, 0, 0, 0}, attrs()}};
-struct action magic = {"magic1", ACT_SPELL, TARGET_OPP, 5, {5, {0, 0, 0}, {true, SP_FIRE, D4, 2}, attrs()}};
-struct action heal = {"heal", ACT_SPELL, TARGET_SELF, 2, {5, {0, 0, 0}, {false, SP_FIRE, D4, 2}, attrs()}};
-struct action unstrong = {"unstrong", ACT_BUFF, TARGET_OPP, 3, {5, {0, 0, 0}, {0, 0, 0, 0}, attrs(.STR = -5)}};
+struct action melee = {"melee", ACT_MELEE, TARGET_OPP, 3, {5, {3, D2, 3}, {0, 0, 0, 0}, {attrs()}}};
+struct action magic = {"magic1", ACT_SPELL, TARGET_OPP, 5, {5, {0, 0, 0}, {true, SP_FIRE, D4, 2}, {attrs()}}};
+struct action heal = {"heal", ACT_SPELL, TARGET_SELF, 2, {5, {0, 0, 0}, {false, SP_FIRE, D4, 2}, {attrs()}}};
+struct action unstrong = {"unstrong", ACT_BUFF, TARGET_OPP, 3, {5, {0, 0, 0}, {0, 0, 0, 0}, {attrs(.STR = -5)}}};
 
-
-void game(struct pkmn *p1, struct pkmn *p2) {
-	struct attack_result res = attack(p1, p2, &melee, &melee);
-}
 
 void print_attrs(struct attrs a) {
 	printf("%d %d %d %d %d %d\n", a.STR, a.DEF, a.CON, a.MAG, a.DEX, a.LCK);
@@ -54,6 +50,7 @@ char *gs(uint8_t a) {
 		case SUC_WEAK: return "WEAK";
 		case SUC_NORM: return "NORM";
 		case SUC_CRIT: return "CRIT";
+		default: return "";
 	}
 }
 

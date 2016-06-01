@@ -63,7 +63,6 @@ void quit_handler(int argc, char **argv) {
 
 void exec_handler(int argc, char **argv) {
 	pid_t pid;
-	int status;
 	int fd[2];
 	if (pipe(fd) == -1) {
 		perror("pipe(2) failed:");

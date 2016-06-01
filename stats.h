@@ -28,18 +28,18 @@ enum target { TARGET_SELF, TARGET_OPP };
 
 struct action_data {
 	uint8_t dc_mod; // resist roll
-	struct {
+	struct melee_data {
 		uint8_t str_mod;
 		uint8_t d_type;
 		uint8_t d_count;
 	} melee;
-	struct {
+	struct spell_data {
 		bool harming;
 		uint8_t specialization;
 		uint8_t d_type;
 		uint8_t d_count;
 	} spell;
-	struct {
+	struct buff_data {
 		struct attrs d_attrs;
 	} buff;
 };
@@ -92,8 +92,8 @@ struct attack_result attack(struct pkmn *, struct pkmn *, struct action *, struc
 struct attrs add_attrs(struct attrs, struct attrs);
 
 struct attrs attrs_from_vector(int attrs[6]);
-struct pk_class *make_class(char *name, enum specialization, int attrs[6]);
+struct pk_class *make_class(char *name, enum specialization, struct attrs base_attrs);
 struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8_t str, enum dice d_type, uint8_t d_count);
-struct action *spell_action(char *name, enum specialization spec, enum target trgt, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count);
+struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count);
 struct action *buff_action(char *name, enum target target, uint8_t speed_penalty, uint8_t dc, struct attrs dattrs);
 #endif //STATS_H

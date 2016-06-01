@@ -17,7 +17,7 @@ struct attrs attr_caps = {-1, -1, -1, -1, -1, 20};
 
 #define gattr(x, attr) ((int8_t *)((int8_t *)(&(x)) + attr_offsets[attr]))
 
-uint8_t enforce_caps(struct attrs *attrs) {
+void enforce_caps(struct attrs *attrs) {
 	int8_t *dst, *cap;
 	for (int attr = 0; attr < 6; ++attr) {
 		dst = gattr(*attrs, attr), cap = gattr(attr_caps, attr);
@@ -65,7 +65,7 @@ static enum attack_outcome calc_attack_success(struct pkmn *first, struct pkmn *
 		uint8_t d2 = AC_BASE + target->attrs.DEF;
 		int8_t dc  = DC_BASE + a->data.dc_mod + first->attrs.STR - target->attrs.DEF;
 		uint8_t saving_throw = dc < 10 ? 10 : (uint8_t) dc;
-		if (d1 > d2 && d1 - d2 > 5 || d == 20)
+		if ((d1 > d2 && d1 - d2 > 5) || d == 20)
 			o = SUC_CRIT;
 		else if (d1 > d2)
 			o = SUC_NORM;
@@ -240,7 +240,7 @@ struct attrs add_attrs(struct attrs lhs, struct attrs rhs) {
 }
 
 struct attack_result attack(struct pkmn *first, struct pkmn *second, struct action *a1, struct action *a2) {
-	struct attack_result res = {0, };
+	struct attack_result res;
 	res.p1.action = a1, res.p2.action = a2;
 	uint8_t d1 = throw_dice(D20, 1, first), d2 = throw_dice(D20, 1, second);
 	uint8_t _a = d1 + first->attrs.DEX, _b = d2 + second->attrs.DEX;
@@ -255,5 +255,40 @@ struct attack_result attack(struct pkmn *first, struct pkmn *second, struct acti
 	process_attack(f, s, a, o1);
 	if (f->alive && s->alive)
 		process_attack(s, f, b, o2);
+	return res;
+}
+
+struct attrs attrs_from_vector(int attrs[6]) {
+	struct attrs res;
+	for (int attr = 0; attr < 6; ++attr) {
+		*gattr(res, attr) = attrs[attr];
+	}
+	return res;
+}
+
+struct pk_class *make_class(char *name, enum specialization spec, struct attrs base_attrs) {
+	struct pk_class *res = malloc(sizeof(struct pk_class));
+	*res = (struct pk_class){.name = name, .spec = spec, .base_attributes = base_attrs};
+	return res;
+}
+
+struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8_t str, enum dice d_type, uint8_t d_count) {
+	struct action *res = malloc(sizeof(struct action));
+	struct action_data data = {dc, {str, d_type, d_count}, {0, 0, 0, 0}, {attrs()}};
+	*res = (struct action){.name = name, .type = ACT_MELEE, .target = TARGET_OPP, .speed_penalty = speed_penalty, .data = data};
+	return res;
+}
+
+struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count) {
+	struct action *res = malloc(sizeof(struct action));
+	struct action_data data = {dc, {0, 0, 0}, {spec == SP_NONE, spec, d_type, d_count}, {attrs()}};
+	*res = (struct action){.name = name, .type = ACT_SPELL, .target = target, .speed_penalty = speed_penalty, .data = data};
+	return res;
+}
+
+struct action *buff_action(char *name, enum target target, uint8_t speed_penalty, uint8_t dc, struct attrs dattrs) {
+	struct action *res = malloc(sizeof(struct action));
+	struct action_data data = {dc, {0, 0, 0}, {0, 0, 0, 0}, {dattrs}};
+	*res = (struct action){.name = name, .type = ACT_BUFF, .target = target, .speed_penalty = speed_penalty, .data = data};
 	return res;
 }
