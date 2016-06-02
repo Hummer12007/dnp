@@ -12,7 +12,7 @@ int read_csv(FILE *fp, list_t *dst, void *(*cb)(int argc, char **argv)) {
 	while (dst->next)
 		dst = dst->next;
 	while (getline(&lineptr, &n, fp) != -1) {
-		split_args(lineptr, &argv, ',');
+		argc = split_args(lineptr, &argv, ',');
 		data = cb(argc, argv);
 		if (data) {
 			dst->next = list_new_node(data);

@@ -43,7 +43,7 @@ bool init_game_data() {
 	static void *(*cbs[])(int, char **) = {melee_cb, spell_cb, buff_cb};
 	char *c;
 	struct stat st;
-	int cnt, i = 0;
+	int i = 0;
 	FILE *fp;
 	data.action_storage = list_new_node(NULL);
 	data.pk_class_storage = list_new_node(NULL);
