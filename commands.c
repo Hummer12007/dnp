@@ -44,7 +44,7 @@ void handle_cmd(char *cmd) {
 		return;
 	}
 	char **argv;
-	int argc = split_args(cmd, &argv);
+	int argc = split_args(cmd, &argv, ' ');
 	struct cmd_handler *handler = find_handler(argv[0]);
 	if (!handler) {
 		fprintf(stderr, "Unknown command: %s\n", argv[0]);

@@ -2,6 +2,7 @@
 #define STATS_H
 #include <stdint.h>
 #include <stdbool.h>
+#include "list.h"
 
 #define DC_BASE 10
 #define AC_BASE 10
@@ -62,9 +63,9 @@ struct pkmn {
 	struct pk_class *cls;
 	struct attrs attrs;
 	bool alive;
+	list_t *spells;
 	uint8_t lvl;
 	uint8_t hp;
-	struct action spells[];
 };
 
 struct pk_attack_result {
@@ -91,7 +92,11 @@ uint8_t throw_dice(enum dice, int count, struct pkmn *);
 struct attack_result attack(struct pkmn *, struct pkmn *, struct action *, struct action *);
 struct attrs add_attrs(struct attrs, struct attrs);
 
+enum specialization spec_from_str(char *c);
+enum dice dice_from_str(char *c);
+enum target target_from_str(char *c);
 struct attrs attrs_from_vector(int attrs[6]);
+
 struct pk_class *make_class(char *name, enum specialization, struct attrs base_attrs);
 struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8_t str, enum dice d_type, uint8_t d_count);
 struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count);

@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stddef.h>
+#include <string.h>
 #include <limits.h>
 #include <assert.h>
 
@@ -291,4 +292,36 @@ struct action *buff_action(char *name, enum target target, uint8_t speed_penalty
 	struct action_data data = {dc, {0, 0, 0}, {0, 0, 0, 0}, {dattrs}};
 	*res = (struct action){.name = name, .type = ACT_BUFF, .target = target, .speed_penalty = speed_penalty, .data = data};
 	return res;
+}
+
+enum specialization spec_from_str(char *c) {
+	if (!strcasecmp(c, "fire"))
+		return SP_FIRE;
+	else if (!strcasecmp(c, "water"))
+		return SP_WATER;
+	else if (!strcasecmp(c, "light"))
+		return SP_LIGHT;
+	else if (!strcasecmp(c, "dark"))
+		return SP_DARK;
+	else return SP_NONE;
+}
+
+enum dice dice_from_str(char *c) {
+	static enum dice ds[] = {D2, D4, D6, D8, D10, D12, D20, 0};
+	int dice, i = 0;
+	if (!c || (*c != 'd' && *c != 'D'))
+		return 0;
+	dice = atoi(++c);
+	while (ds[i] != 0)
+		if (ds[i] == dice)
+			return dice;
+	return 0;
+}
+
+enum target target_from_str(char *c) {
+	if (!strcasecmp(c, "self"))
+		return TARGET_SELF;
+	else if (!strcasecmp(c, "opponent"))
+		return TARGET_OPP;
+	return TARGET_OPP;
 }

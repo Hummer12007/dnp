@@ -1,10 +1,11 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "util.h"
 
-int split_args(char *cmd, char ***argv) {
+int split_args(char *cmd, char ***argv, char sep) {
 	size_t argv_size = 2;
 	size_t count = 0;
 	char **args = malloc(sizeof(char *) * argv_size);
@@ -19,7 +20,7 @@ int split_args(char *cmd, char ***argv) {
 			c1++;
 			c2 = strchr(c1, '"');
 		}
-		else c2 = strchr(c1, ' ');
+		else c2 = strchr(c1, sep);
 		len = c2 ? (c2 - c1) : strlen(c1);
 		if (!len)
 			break;
@@ -56,4 +57,11 @@ const void *lsearch (const void *key, const void *base, size_t nmemb, size_t siz
 			return curr;
 	}
 	return NULL;
+}
+
+char *dir_child(char *parent, char *child) {
+	size_t len = strlen(parent) + strlen(child);
+	char *res = malloc(len + 2);
+	sprintf("%s/%s", parent, child);
+	return res;
 }
