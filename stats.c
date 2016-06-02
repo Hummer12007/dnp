@@ -307,13 +307,13 @@ enum specialization spec_from_str(char *c) {
 }
 
 enum dice dice_from_str(char *c) {
-	static enum dice ds[] = {D2, D4, D6, D8, D10, D12, D20, 0};
+	static const enum dice ds[] = {D2, D4, D6, D8, D10, D12, D20, 0};
 	int dice, i = 0;
 	if (!c || (*c != 'd' && *c != 'D'))
 		return 0;
 	dice = atoi(++c);
 	while (ds[i] != 0)
-		if (ds[i] == dice)
+		if (ds[i++] == dice)
 			return dice;
 	return 0;
 }

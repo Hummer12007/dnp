@@ -40,12 +40,16 @@ cleanup:
 }
 
 bool init_game_data() {
+	static bool inited = false;
+	if (inited)
+		return true;
 	static char *acs[] = {"melee.csv", "spells.csv", "buffs.csv", NULL};
 	static void *(*cbs[])(int, char **) = {melee_cb, spell_cb, buff_cb};
 	char *c;
 	struct stat st;
 	int i = 0;
 	FILE *fp;
+	list_t *l = NULL;
 	data.action_storage = list_new_node(NULL);
 	data.pk_class_storage = list_new_node(NULL);
 	data_dir = getenv("DNP_DATA_DIR");
@@ -62,8 +66,22 @@ bool init_game_data() {
 		read_csv(fp, data.action_storage, cbs[i]);
 		i++;
 	}
+	if (data.action_storage->next) {
+		l = data.action_storage;
+		data.action_storage = l->next;
+		free(l);
+	}
+	if (data.pk_class_storage->next) {
+		l = data.pk_class_storage;
+		data.pk_class_storage = l->next;
+		free(l);
+	}
+	inited = true;
 	return true;
 }
+
+list_t *get_actions() { return data.action_storage; }
+list_t *get_classes() { return data.pk_class_storage; }
 
 static int atos8(char *c) {
 	int a = atoi(c);

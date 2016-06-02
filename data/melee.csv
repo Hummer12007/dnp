@@ -1,4 +1,4 @@
-action name,speed penalty, difficulty class, strength, dice type, dice count
+#action name,speed penalty, difficulty class, strength, dice type, dice count
 weak punch,3,3,3,d2,1
 fast punch,1,2,2,d4,1
 uppercut,5,4,5,d2,3

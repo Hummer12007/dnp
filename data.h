@@ -8,4 +8,6 @@ bool init_game_data();
 struct action *get_action(char *name);
 void add_action(struct action *);
 struct pk_class *add_class(struct pk_class *);
+list_t *get_actions();
+list_t *get_classes();
 #endif //DATA_H

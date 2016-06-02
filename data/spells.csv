@@ -1,2 +1,2 @@
-name,specialization (fire/water/light/dark/heal),target (self/opponent),speed penalty,difficulty class,dice type,dice count
+#name,specialization (fire/water/light/dark/heal),target (self/opponent),speed penalty,difficulty class,dice type,dice count
 fireball,fire,opponent,8,6,d4,1

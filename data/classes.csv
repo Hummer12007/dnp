@@ -1,2 +1,2 @@
-class name, specialization, strength, defense, constitution, magic, dexterity, luck
+#class name, specialization, strength, defense, constitution, magic, dexterity, luck
 charmander, fire, 2, 0, 5, -4, -1, 1

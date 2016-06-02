@@ -38,6 +38,8 @@ int split_args(char *cmd, char ***argv, char sep) {
 		if (c2 && *c2 == '"')
 			c2++;
 		c1 = c2;
+		if (c1 && *c1 == sep)
+			c1++;
 		count++;
 	}
 	*argv = args;

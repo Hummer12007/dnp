@@ -1,2 +1,2 @@
-name,target (self/opponent),speed penalty,difficulty class,strength, defense, constitution (max hp), magic, dexterity (speed), luck
+#name,target (self/opponent),speed penalty,difficulty class,strength, defense, constitution (max hp), magic, dexterity (speed), luck
 stronger and slower,self,3,6,4,0,0,0,-2,0

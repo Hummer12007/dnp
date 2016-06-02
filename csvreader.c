@@ -12,6 +12,8 @@ int read_csv(FILE *fp, list_t *dst, void *(*cb)(int argc, char **argv)) {
 	while (dst->next)
 		dst = dst->next;
 	while (getline(&lineptr, &n, fp) != -1) {
+		if (*lineptr == '#')
+			goto linefree;
 		argc = split_args(lineptr, &argv, ',');
 		data = cb(argc, argv);
 		if (data) {
@@ -20,6 +22,7 @@ int read_csv(FILE *fp, list_t *dst, void *(*cb)(int argc, char **argv)) {
 			count++;
 		}
 		free_args(argc, argv);
+	linefree:
 		free(lineptr);
 		lineptr = NULL, n = 0;
 	}
