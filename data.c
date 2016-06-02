@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -17,7 +18,7 @@
 struct game_data {
 	list_t *action_storage;
 	list_t *pk_class_storage;
-};
+} data;
 
 static char *data_dir;
 
@@ -30,9 +31,9 @@ static FILE *openfile(char *path, char *child) {
 	struct stat st;
 	FILE *fp = NULL;
 	char *str = dir_child(path, child);
-	if (stat(data_dir, &st) || (st.st_mode & S_IFDIR))
+	if (stat(str, &st) || (st.st_mode & S_IFDIR))
 		goto cleanup;
-	fp = fopen("str", "r");
+	fp = fopen(str, "r");
 cleanup:
 	free(str);
 	return fp;

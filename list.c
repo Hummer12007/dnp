@@ -25,6 +25,13 @@ void *list_search(void *key, list_t *base, int (*cmp)(void *, void *)) {
 	return NULL;
 }
 
+void list_foreach(list_t *base, void (*cb)(void *)) {
+	while (base) {
+		cb(base->data);
+		base = base->next;
+	}
+}
+
 void list_free(list_t *list) {
 	list_t *p;
 	while (list) {

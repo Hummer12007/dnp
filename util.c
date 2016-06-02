@@ -62,6 +62,6 @@ const void *lsearch (const void *key, const void *base, size_t nmemb, size_t siz
 char *dir_child(char *parent, char *child) {
 	size_t len = strlen(parent) + strlen(child);
 	char *res = malloc(len + 2);
-	sprintf("%s/%s", parent, child);
+	sprintf(res, "%s/%s", parent, child);
 	return res;
 }

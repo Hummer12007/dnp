@@ -2,7 +2,7 @@
 #define DATA_H
 #include "stats.h"
 
-struct game_data data;
+extern struct game_data data;
 
 bool init_game_data();
 struct action *get_action(char *name);
