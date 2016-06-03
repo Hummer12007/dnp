@@ -55,3 +55,10 @@ list_t *list_filter(void *key, list_t *base, int (*cmp)(void *, void *)) {
 	free(res);
 	return p;
 }
+
+size_t list_length(list_t *list) {
+	size_t i = 0;
+	while (list)
+		i++, list = list->next;
+	return i;
+}
