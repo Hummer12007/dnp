@@ -63,9 +63,9 @@ struct pkmn {
 	struct pk_class *cls;
 	struct attrs attrs;
 	bool alive;
-	list_t *spells;
 	uint8_t lvl;
 	uint8_t hp;
+	list_t *skills;
 };
 
 struct pk_attack_result {
