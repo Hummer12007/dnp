@@ -204,14 +204,12 @@ static void process_attack(struct pkmn *attacker, struct pkmn *target, struct ac
 	default: { break; }
 	}
 	if (d_positive) {
-		if (target->hp + o->dhp >= target->attrs.CON)
-			target->hp = target->attrs.CON;
-		else
-			target->hp += o->dhp;
+		target->hp += o->dhp;
 	} else {
 		if (target->hp == 0) {
+			o->dhp = 0;
 			target->alive = false;
-		} if (o->dhp > target->hp) {
+		} else if (o->dhp > target->hp) {
 			o->dhp -= target->hp;
 			target->hp = 0;
 			target->alive = false;
@@ -221,6 +219,8 @@ static void process_attack(struct pkmn *attacker, struct pkmn *target, struct ac
 
 	}
 	target->attrs = add_attrs(target->attrs, o->dattrs);
+	if (target->hp > target->attrs.CON)
+		target->hp = target->attrs.CON;
 }
 
 struct attrs add_attrs(struct attrs lhs, struct attrs rhs) {

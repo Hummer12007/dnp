@@ -1,2 +1,12 @@
-#name,specialization (fire/water/light/dark/heal),target (self/opponent),speed penalty,difficulty class,dice type,dice count
-fireball,fire,opponent,8,6,d4,1
+#name, specialization (fire/water/light/dark/heal), target (self/opponent), speed penalty, difficulty class, dice type, dice count
+matan, dark, opponent, 2, 4, d2, 2
+flying mattress, dark, opponent, 3, 8, d6, 1
+incentio, fire, opponent, 2, 7, d2, 3
+fireball, fire, opponent, 8, 6, d4, 1
+karen's medicine, heal, self, 1, 1, d20, 1
+podorozhnik, heal, self, 1, 6, d8, 1
+russian gun, light, opponent, 2, 16, d4, 4
+flard, light, opponent, 2, 5, d4, 2
+fenix ray, light, opponent, 7, 15, d6, 2
+parus zhigus, water, opponent, 3, 7, d2, 2
+karen's tears, water, opponent, 4, 2, d6, 1

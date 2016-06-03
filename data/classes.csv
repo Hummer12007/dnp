@@ -1,2 +1,5 @@
-#class name, specialization, strength, defense, constitution, magic, dexterity, luck
-charmander, fire, 2, 0, 5, -4, -1, 1
+class name, specializationi (fire/water/dark/light), strength, defense, constitution, magic, dexterity, luck
+charmander, fire, 2, 0, 5, -2, -1, 1
+slowpoke, water, 1, 0, 2, 1, -5, 1
+nyanboron, light, 3, 2, 0, -1, 1, 0
+bredor, dark, 0, 1, 3, 2, 0, -3

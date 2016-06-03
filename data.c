@@ -105,6 +105,8 @@ void *class_cb(int argc, char **argv) {
 	char *name = strdup(argv[0]);
 	enum specialization spec = spec_from_str(argv[1]);
 	int attrs[6] = {0,};
+	if (spec == SP_NONE)
+		return NULL;
 	for (int i = 0; i < argc - 2; ++i)
 		attrs[i] = atos8(argv[i + 2]);
 	struct attrs base = attrs_from_vector(attrs);
