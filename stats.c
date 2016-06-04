@@ -4,7 +4,6 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include <assert.h>
 
 #include <stdio.h>
 
@@ -57,10 +56,10 @@ void level_up(struct pkmn *pokemon) {
 static void process_attack(struct pkmn *, struct pkmn *, struct action *, struct pk_attack_result *);
 
 static enum attack_outcome calc_attack_success(struct pkmn *first, struct pkmn *target, struct action *a) {
+	enum attack_outcome o = SUC_INEF;
 	switch (a->type) {
 	case ACT_MELEE:
 		{
-		enum attack_outcome o;
 		uint8_t d   = throw_dice(D20, 1, first);
 		uint8_t d1 = d + first->attrs.STR + a->data.melee.str_mod;
 		uint8_t d2 = AC_BASE + target->attrs.DEF;
@@ -77,13 +76,12 @@ static enum attack_outcome calc_attack_success(struct pkmn *first, struct pkmn *
 		uint8_t dice = throw_dice(D20, 1, target);
 		if (o != SUC_INEF)
 			if (dice >= saving_throw || dice == 20)
-				return SUC_SAVED;
+				o =  SUC_SAVED;
 		return o;
 		}
 	case ACT_SPELL:
 		{
 		if (a->data.spell.harming) {
-			enum attack_outcome o;
 			uint8_t d1 = throw_dice(D20, 1, first) + first->attrs.MAG;
 			int8_t d2 = (a->data.spell.specialization == SP_NONE) ? 0 : attack_efficiency[a->data.spell.specialization][target->cls->spec];
 			int8_t dc = DC_BASE + a->data.dc_mod + first->attrs.MAG - target->attrs.MAG;
@@ -101,22 +99,23 @@ static enum attack_outcome calc_attack_success(struct pkmn *first, struct pkmn *
 			uint8_t dice = throw_dice(D20, 1, target);
 			if (o != SUC_INEF)
 				if (dice >= saving_throw || dice == 20)
-					return SUC_SAVED;
+					o = SUC_SAVED;
 			return o;
 		} else {
+			enum attack_outcome o;
 			uint8_t dice = throw_dice(D20, 1, first);
 			if (dice > 18)
-				return SUC_CRIT;
+				o = SUC_CRIT;
 			else if (dice > 10)
-				return SUC_NORM;
+				o =  SUC_NORM;
 			else if (dice > 5)
-				return SUC_WEAK;
-			else return SUC_INEF;
+				o =  SUC_WEAK;
+			else o = SUC_INEF;
+			return o;
 		}
 		}
 	case ACT_BUFF:
 		{
-		enum attack_outcome o;
 		if (a->target == TARGET_OPP) {
 			uint8_t d1 = throw_dice(D20, 1, first) + first->attrs.MAG;
 			uint8_t d2 = throw_dice(D20, 1, target) + target->attrs.MAG + a->data.dc_mod;
@@ -131,19 +130,20 @@ static enum attack_outcome calc_attack_success(struct pkmn *first, struct pkmn *
 			uint8_t dice = throw_dice(D20, 1, target);
 			if (o != SUC_INEF)
 				if (dice >= saving_throw || dice == 20)
-					return SUC_SAVED;
+					o = SUC_SAVED;
 			return o;
 		} else {
 			uint8_t d1 = throw_dice(D20, 1, first) + first->attrs.MAG / 10 - a->data.dc_mod;
 			if (d1 > 10)
-				return SUC_NORM;
+				o = SUC_NORM;
 			else if (d1 > 5)
-				return SUC_WEAK;
-			else return SUC_INEF;
+				o = SUC_WEAK;
+			else o = SUC_INEF;
+			return o;
 		}
 		}
 	}
-	return SUC_NORM;
+	return o;
 }
 
 static void process_attack(struct pkmn *attacker, struct pkmn *target, struct action *a, struct pk_attack_result *o) {
@@ -157,8 +157,8 @@ static void process_attack(struct pkmn *attacker, struct pkmn *target, struct ac
 	case ACT_MELEE:
 	case ACT_SPELL:
 		{
-		uint8_t damage_roll = a->type == ACT_MELEE ? \
-			throw_dice(a->data.melee.d_type, a->data.melee.d_count, attacker) : \
+		uint8_t damage_roll = a->type == ACT_MELEE ?
+			throw_dice(a->data.melee.d_type, a->data.melee.d_count, attacker) :
 			throw_dice(a->data.spell.d_type, a->data.spell.d_count, attacker);
 		d_positive = a->type == ACT_SPELL && !a->data.spell.harming;
 		switch (o->outcome) {
@@ -208,7 +208,8 @@ static void process_attack(struct pkmn *attacker, struct pkmn *target, struct ac
 	} else {
 		if (target->hp == 0) {
 			o->dhp = 0;
-			target->alive = false;
+			if (a->type != ACT_BUFF && o->outcome != SUC_SAVED)
+				target->alive = false;
 		} else if (o->dhp > target->hp) {
 			o->dhp -= target->hp;
 			target->hp = 0;
@@ -219,6 +220,7 @@ static void process_attack(struct pkmn *attacker, struct pkmn *target, struct ac
 
 	}
 	target->attrs = add_attrs(target->attrs, o->dattrs);
+	enforce_caps(&target->attrs);
 	if (target->hp > target->attrs.CON)
 		target->hp = target->attrs.CON;
 }
@@ -254,8 +256,10 @@ struct attack_result attack(struct pkmn *first, struct pkmn *second, struct acti
 	else
 		f = second, s = first, a = a2, b = a1, o1 = &(res.p2), o2 = &(res.p1);
 	process_attack(f, s, a, o1);
-	if (f->alive && s->alive)
+	if (f->alive && s->alive) {
 		process_attack(s, f, b, o2);
+		res.order |= 1 << 1;
+	}
 	return res;
 }
 
@@ -282,7 +286,7 @@ struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8
 
 struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count) {
 	struct action *res = malloc(sizeof(struct action));
-	struct action_data data = {dc, {0, 0, 0}, {spec == SP_NONE, spec, d_type, d_count}, {attrs()}};
+	struct action_data data = {dc, {0, 0, 0}, {spec != SP_NONE, spec, d_type, d_count}, {attrs()}};
 	*res = (struct action){.name = name, .type = ACT_SPELL, .target = target, .speed_penalty = speed_penalty, .data = data};
 	return res;
 }

@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -55,17 +54,20 @@ void print_class(struct pk_class *cls) {
 
 
 void print_skill(void *skill) {
-	printf("%s\n", ((struct action *) skill)->name);
+	struct action *s = skill;
+	printf("%s %d\n", s->name, s->type);
 }
 
-void print_pokemon(struct pkmn *p) {
-	puts("Class:");
-//	print_class(p->cls);
+void print_pokemon(struct pkmn *p, bool verbose) {
 	puts("Attributes:");
 	print_attrs(p->attrs);
 	printf("Level %u, %u HP, alive: %d\n", p->lvl, p->hp, p->alive);
-	puts("Skills: ");
-//	list_foreach(p->skills, print_skill);
+	if (verbose) {
+		puts("Class:");
+		print_class(p->cls);
+		puts("Skills: ");
+		list_foreach(p->skills, print_skill);
+	}
 }
 
 char *gs(uint8_t a) {
@@ -75,23 +77,31 @@ char *gs(uint8_t a) {
 		case SUC_WEAK: return "WEAK";
 		case SUC_NORM: return "NORM";
 		case SUC_CRIT: return "CRIT";
-		default: puts("This should not happen!");
-		assert(false);
-		return "WTF?";
+		default: return "";
+	}
+}
+
+char *gt(uint8_t a) {
+	switch (a) {
+		case TARGET_SELF: return "self";
+		case TARGET_OPP: return "opponent";
+		default: return "";
 	}
 }
 
 void print_pk_res(struct pk_attack_result res) {
-	printf("Action: %s, Outcome: %s, dhp: %d, attrs: ", res.action->name, gs(res.outcome), res.dhp);
+	printf("Action: %s. target: %s. Outcome: %s, dhp: %d, attrs: ", res.action->name, gt(res.action->target), gs(res.outcome), res.dhp);
 	print_attrs(res.dattrs);
 }
 
 void print_results(struct attack_result res) {
-	printf("First attacker: %s\n", res.order ? "Player 1" : "Player 2");
-	puts("Player 1 attack:");
+	printf("First attacker: %s\n", res.order & 1 ? "Player 1" : "Player 2");
+	puts("Attack 1:");
 	print_pk_res(res.p1);
-	puts("Player 2 attack:");
-	print_pk_res(res.p2);
+	if (res.order & 1 << 1) {
+		puts("Attack 2:");
+		print_pk_res(res.p2);
+	}
 }
 
 struct action *gaction(struct pkmn *pk) {
@@ -112,14 +122,14 @@ int main() {
 	list_free(l);
 	struct pkmn *pk1 = gen_pokemon(c1, 50);
 	struct pkmn *pk2 = gen_pokemon(c2, 50);
-	print_pokemon(pk1);
-	print_pokemon(pk2);
+	print_pokemon(pk1, true);
+	print_pokemon(pk2, true);
 
  	struct attack_result res;
 	do {
 		res = attack(pk1, pk2, gaction(pk1), gaction(pk2));
 		print_results(res);
-		print_pokemon(pk1);
-		print_pokemon(pk2);
+		print_pokemon(pk1, false);
+		print_pokemon(pk2, false);
 	} while (pk1->alive && pk2->alive);
 }

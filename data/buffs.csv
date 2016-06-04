@@ -7,7 +7,6 @@ speedhack, self, 3, 5, 0, 0, 0, 0, 2, 0
 power sacrifice, self, 3, 4, 10, 0, -20, 0, 0, 0
 magic helmet, self, 3, 3, 0, 1, 0, -1, 0, 0
 magic++, self, 1, 7, -5, -3, 0, 5, -1, 0
-nullify, opponent, 6, 20, 0, 0, -125, 0, 0, 0
 flu, opponent, 5, 8, 0, 0, -2, -3, 0, 0
 lagbringer, opponent, 4, 5, 0, 0, 0, 0, -4, 0
 vengardium leviossa, opponent, 3, 5, 2, -4, 0, 0, 2, 1

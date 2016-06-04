@@ -79,7 +79,7 @@ struct pk_attack_result {
 struct attack_result {
 	struct pk_attack_result p1;
 	struct pk_attack_result p2;
-	bool order;
+	uint8_t order;
 };
 
 enum dice {D2 = 2, D4 = 4, D6 = 6, D8 = 8, D10 = 10, D12 = 12, D20 = 20};
