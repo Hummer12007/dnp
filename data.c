@@ -14,6 +14,7 @@
 #include "list.h"
 #include "util.h"
 #include "csvreader.h"
+#include "serial.h"
 
 struct game_data {
 	list_t *action_storage;
@@ -21,11 +22,6 @@ struct game_data {
 } data;
 
 static char *data_dir;
-
-void *class_cb(int, char **);
-void *melee_cb(int, char **);
-void *buff_cb(int, char **);
-void *spell_cb(int, char **);
 
 static FILE *openfile(char *path, char *child) {
 	struct stat st;
@@ -44,7 +40,7 @@ bool init_game_data() {
 	if (inited)
 		return true;
 	static char *acs[] = {"melee.csv", "spells.csv", "buffs.csv", NULL};
-	static void *(*cbs[])(int, char **) = {melee_cb, spell_cb, buff_cb};
+	static void *(*cbs[])(int, char **) = {des_melee, des_spell, des_buff};
 	char *c;
 	struct stat st;
 	int i = 0;
@@ -59,11 +55,11 @@ bool init_game_data() {
 		return false;
 	if (!(fp = openfile(data_dir, "classes.csv")))
 		return false;
-	read_csv(fp, data.pk_class_storage, class_cb);
+	csv_readfile(fp, data.pk_class_storage, des_class);
 	while ((c = acs[i])) {
 		if (!(fp = openfile(data_dir, c)))
 			return false;
-		read_csv(fp, data.action_storage, cbs[i]);
+		csv_readfile(fp, data.action_storage, cbs[i]);
 		i++;
 	}
 	if (data.action_storage->next) {
@@ -83,71 +79,24 @@ bool init_game_data() {
 list_t *get_actions() { return data.action_storage; }
 list_t *get_classes() { return data.pk_class_storage; }
 
-static int atos8(char *c) {
-	int a = atoi(c);
-	if (a < INT8_MIN || a > INT8_MAX)
-		return 0;
-	return a;
+int act_cmp(void *key, void *data) {
+	char *keyname = (char *)key, *dataname = ((struct action *)data)->name;
+	return strcasecmp(keyname, dataname);
+}
+struct action *get_action(char *name) {
+	return list_search(name, data.action_storage, act_cmp);
+}
+void add_action(struct action *a) {
+	list_append(data.action_storage, a);
 }
 
-static int atou8(char *c) {
-	int a = atoi(c);
-	if (a < 0 || a > UINT8_MAX)
-		return 0;
-	return a;
+int cls_cmp(void *key, void *data) {
+	char *keyname = (char *)key, *dataname = ((struct pk_class *)data)->name;
+	return strcasecmp(keyname, dataname);
 }
-
-void *class_cb(int argc, char **argv) {
-	if (argc < 2)
-		return NULL;
-	if (argc > 8)
-		argc = 8;
-	char *name = strdup(argv[0]);
-	enum specialization spec = spec_from_str(argv[1]);
-	int attrs[6] = {0,};
-	if (spec == SP_NONE)
-		return NULL;
-	for (int i = 0; i < argc - 2; ++i)
-		attrs[i] = atos8(argv[i + 2]);
-	struct attrs base = attrs_from_vector(attrs);
-	return make_class(name, spec, base);
-
+struct pk_class *get_class(char *name) {
+	return list_search(name, data.pk_class_storage, cls_cmp);
 }
-
-void *melee_cb(int argc, char **argv) {
-	if (argc < 6)
-		return NULL;
-	char *name = strdup(argv[0]);
-	uint8_t spd = atou8(argv[1]), dc = atou8(argv[2]), str = atou8(argv[3]), d_count = atou8(argv[5]);
-	enum dice d = dice_from_str(argv[4]);
-	if (!d)
-		return NULL;
-	return melee_action(name, spd, dc, str, d, d_count);
-}
-
-void *spell_cb(int argc, char **argv) {
-	if (argc < 7)
-		return NULL;
-	char *name = strdup(argv[0]);
-	enum specialization spec = spec_from_str(argv[1]);
-	enum target target = target_from_str(argv[2]);
-	uint8_t spd = atou8(argv[3]), dc = atou8(argv[4]), d_count = atou8(argv[6]);
-	enum dice d = dice_from_str(argv[5]);
-	return spell_action(name, spec, target, spd, dc, d, d_count);
-}
-
-void *buff_cb(int argc, char **argv) {
-	if (argc < 4)
-		return NULL;
-	if (argc > 10)
-		argc = 10;
-	char *name = strdup(argv[0]);
-	enum target target = target_from_str(argv[1]);
-	uint8_t spd = atou8(argv[2]), dc = atou8(argv[3]);
-	int attrs[6] = {0,};
-	for (int i = 0; i < argc - 4; ++i)
-		attrs[i] = atos8(argv[i + 4]);
-	struct attrs dattrs = attrs_from_vector(attrs);
-	return buff_action(name, target, spd, dc, dattrs);
-
+void add_class(struct pk_class *cls) {
+	list_append(data.pk_class_storage, cls);
 }

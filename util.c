@@ -43,6 +43,11 @@ int split_args(char *cmd, char ***argv, char sep) {
 		count++;
 	}
 	*argv = args;
+	char *c = &(args[count - 1][strlen(args[count-1]) - 1]);
+	while (isspace(*c)) {
+		*c = '\0';
+		c--;
+	}
 	return count;
 }
 
@@ -65,5 +70,20 @@ char *dir_child(char *parent, char *child) {
 	size_t len = strlen(parent) + strlen(child);
 	char *res = malloc(len + 2);
 	sprintf(res, "%s/%s", parent, child);
+	return res;
+}
+
+char *join_args(int argc, char **argv, char sep) {
+	int len = 0, i;
+	for (i = 0; i < argc; ++i)
+		len += strlen(argv[i]) + 1;
+	char *res = malloc(len);
+	len = 0;
+	for (i = 0; i < argc; ++i) {
+		strcpy(res + len, argv[i]);
+		len += strlen(argv[i]);
+		res[len++] = sep;
+	}
+	res[len - 1] = '\0';
 	return res;
 }

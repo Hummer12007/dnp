@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "list.h"
 
@@ -33,9 +34,30 @@ void *list_search(void *key, list_t *base, int (*cmp)(void *, void *)) {
 	return NULL;
 }
 
-void list_foreach(list_t *base, void (*cb)(void *)) {
+list_t *list_remove(void *key, list_t *base, int(*pred)(void *, void *), bool free_data) {
+	list_t *prev = NULL, *head = base, *p;
 	while (base) {
-		cb(base->data);
+		if (pred(key, base->data)) {
+			p = base->next;
+			if (prev)
+				prev->next = p;
+			else
+				head = base;
+			if (free_data)
+				free(base->data);
+			free(base);
+			base = p;
+		} else {
+			prev = base;
+			base = base->next;
+		}
+	}
+	return head;
+}
+
+void list_foreach(list_t *base, void (*cb)(void *elem, void *data), void *data) {
+	while (base) {
+		cb(base->data, data);
 		base = base->next;
 	}
 }
