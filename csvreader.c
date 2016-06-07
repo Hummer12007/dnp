@@ -35,5 +35,4 @@ void *csv_readline(char *line, void *(*cb)(int argc, char **argv)) {
 	data = cb(argc, argv);
 	free_args(argc, argv);
 	return data;
-	
 }

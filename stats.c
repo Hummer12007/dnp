@@ -34,7 +34,7 @@ uint8_t throw_dice(enum dice d, int count, struct pkmn *pokemon) {
 	int outcome = 0;
 	while (count--)
 		outcome += rand() % d + 1;
-	if ((rand() % 100) < pokemon->attrs.LCK) 
+	if ((rand() % 100) < pokemon->attrs.LCK)
 		outcome++;
 	return outcome;
 }

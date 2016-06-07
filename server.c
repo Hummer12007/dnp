@@ -185,32 +185,33 @@ int main(int argc, char *argv[]) {
 		port = atoi(argv[1]);
 	else
 		port = PROTOPORT;
+
 	if (port > 0)
 		sad.sin_port = htons((u_short) port);
 	else {
 		fprintf(stderr, "bad port number %s/n", argv[1]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (!(ptrp = getprotobyname("tcp"))) {
 		fprintf(stderr, "cannot map \"tcp\" to protocol number");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	sd = socket(PF_INET, SOCK_STREAM, ptrp->p_proto);
 	if (sd < 0) {
-		fprintf(stderr, "socket creation failed\n");
-		exit(1);
+		perror("failed to create a socket");
+		exit(EXIT_FAILURE);
 	}
 
 	if (bind(sd, (struct sockaddr *)&sad, sizeof(sad)) < 0) {
-		perror("bind failed");
-		exit(1);
+		perror("failed to bind to socket");
+		exit(EXIT_FAILURE);
 	}
 
 	if (listen(sd, QLEN) < 0) {
-		fprintf(stderr, "listen failed\n");
-		exit(1);
+		perror("listen failed");
+		exit(EXIT_FAILURE);
 	}
 
 	alen = sizeof(cad);
@@ -219,7 +220,7 @@ int main(int argc, char *argv[]) {
 	while (1) {
 		if ((sd2 = accept(sd, (struct sockaddr *)&cad, &alen)) < 0) {
 			fprintf(stderr, "accept failed\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		pthread_create(&tid, NULL, conn_handler, &sd2);
 	}
@@ -309,7 +310,7 @@ void *conn_handler(void *parm) {
 	argc = split_args(buf, &argv, ' ');
 	name = strdup(argv[0]);
 	free_args(argc, argv);
-	
+
 	player_number = add_player(name, tsd);
 	if (!player_number) {
 		send_stuff(tsd, err_cl, "Could not add you! Go home!\n", def_cl);
@@ -318,7 +319,7 @@ void *conn_handler(void *parm) {
 	n = player_number - 1;
 	sprintf(buf, "%d", player_number);
 	send_stuff(tsd, succ_cl, "Hi, ", name, " you are player #", buf, ".\n", def_cl);
-	
+
 	if (!players[n].character)
 		send_stuff(tsd, req_cl, "You have no character yet. Please provide the class name",
 			" (or the '.list' word).\n", def_cl);
@@ -368,7 +369,7 @@ void *conn_handler(void *parm) {
 			send_stuff(tsd, succ_cl);
 			list_foreach(players[n].character->skills, send_skill, &tsd);
 			send_stuff(tsd, def_cl);
-		} else if (!strcasecmp(argv[0], ".status")) { 
+		} else if (!strcasecmp(argv[0], ".status")) {
 			send_status(n);
 		} else if (*argv[0] == '.') {
 			send_stuff(tsd, err_cl, "Unknown command!\n", def_cl);
