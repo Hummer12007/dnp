@@ -137,10 +137,8 @@ void serv_attack(int n, struct action *a) {
 			players[0].character->alive ? "won" : "lost", "\n");
 		broadcast(cl_inf, players[1].name, " has ",
 			players[1].character->alive ? "won" : "lost", "\n");
-		for (int i = 0; i < 2; ++i) {
-			close(players[i].tsd);
-			players[i].tsd = 0;
-		}
+		close(players[0].tsd);
+		close(players[1].tsd);
 	}
 	pthread_mutex_unlock(&mut);
 }
