@@ -28,7 +28,7 @@
 
 void _send_stuff(int tsd, ...);
 
-void *serverthread(void *parm);
+void *conn_handler(void *parm);
 
 struct player {
 	char *name;
@@ -82,25 +82,6 @@ void bc_a_r(struct pk_attack_result r) {
 		". Attrs change: ", buf1);
 }
 
-char *tts(enum action_type a) {
-		switch (a) {
-			case ACT_MELEE: return "melee";
-			case ACT_SPELL: return "spell";
-			case ACT_BUFF: return "buff";
-			default: return "melee";
-		}
-}
-
-char *sts(enum specialization a) {
-		switch (a) {
-			case SP_FIRE: return "fire";
-			case SP_WATER: return "water";
-			case SP_DARK: return "dark";
-			case SP_LIGHT: return "light";
-			default : return "healing";
-		}
-}
-
 void send_status(int n) {
 	int tsd = players[n].tsd;
 	struct pkmn *pk = players[n].character;
@@ -115,7 +96,7 @@ void send_status(int n) {
 	sprintf(buf2, "%d STR, %d DEF, %d CON, %d MAG, %d DEX, %d LCK",
 		at.STR, at.DEF, at.CON, at.MAG, at.DEX, at.LCK);
 	sprintf(buf1, "%u/%u", pk->hp, pk->attrs.CON);
-	send_stuff(tsd, "Class: ", cul, pk->cls->name, culo, ", Specialization: ", sts(pk->cls->spec),
+	send_stuff(tsd, "Class: ", cul, pk->cls->name, culo, ", Specialization: ", ser_spec(pk->cls->spec),
 		", Level: ", buf, ", HP: ", buf1, ", ", cb, pk->alive ? "ALIVE" : "DEAD", cbo,
 		", Attributes: ", buf2, "\n", cd);
 }
@@ -242,7 +223,7 @@ int main(int argc, char *argv[]) {
 			fprintf(stderr, "accept failed\n");
 			exit(1);
 		}
-		pthread_create(&tid, NULL, serverthread, &sd2);
+		pthread_create(&tid, NULL, conn_handler, &sd2);
 	}
 
 	close(sd);
@@ -274,7 +255,8 @@ void send_skill(void *c, void *data) {
 		*cb = format_str(C_BOLD, C_FMT_ON),
 		*cbo = format_str(C_BOLD, C_FMT_OFF);
 	sprintf(buf, "%u", a->data.dc_mod);
-	send_stuff(*((int *)data), cul, cb, a->name,cbo,  cul, " of type ", cul, cb, tts(a->type), cbo, culo,
+	send_stuff(*((int *)data), cul, cb, a->name,cbo,  cul, " of type ",
+		cul, cb, ser_actt(a->type), cbo, culo,
 		" targeting ", cul, a == TARGET_SELF ? "self" : "opponent", culo,
 		" with the difficulty class of ", buf);
 	switch (a->type) {
@@ -288,7 +270,7 @@ void send_skill(void *c, void *data) {
 			send_stuff(*((int *)data), " healing ", cb, buf, cbo, " HP\n");
 		} else {
 			sprintf(buf, "%u-%u", a->data.spell.d_count, a->data.spell.d_type * a->data.spell.d_count);
-			send_stuff(*((int *)data), " dealing ", cb, buf, cbo, " of ", sts(a->data.spell.specialization), " damage\n");
+			send_stuff(*((int *)data), " dealing ", cb, buf, cbo, " of ", ser_spec(a->data.spell.specialization), " damage\n");
 		}
 	case ACT_BUFF:
 		{
@@ -301,7 +283,7 @@ void send_skill(void *c, void *data) {
 }
 
 
-void *serverthread(void *parm) {
+void *conn_handler(void *parm) {
 	int tsd, len;
 	tsd = *((int *)parm);
 

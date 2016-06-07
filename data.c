@@ -86,9 +86,6 @@ int act_cmp(void *key, void *data) {
 struct action *get_action(char *name) {
 	return list_search(name, data.action_storage, act_cmp);
 }
-void add_action(struct action *a) {
-	list_append(data.action_storage, a);
-}
 
 int cls_cmp(void *key, void *data) {
 	char *keyname = (char *)key, *dataname = ((struct pk_class *)data)->name;
@@ -96,7 +93,4 @@ int cls_cmp(void *key, void *data) {
 }
 struct pk_class *get_class(char *name) {
 	return list_search(name, data.pk_class_storage, cls_cmp);
-}
-void add_class(struct pk_class *cls) {
-	list_append(data.pk_class_storage, cls);
 }

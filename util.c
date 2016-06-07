@@ -57,15 +57,6 @@ void free_args(int argc, char **argv) {
 		free(argv[i]);
 }
 
-const void *lsearch (const void *key, const void *base, size_t nmemb, size_t size, int (*cmp)(const void *, const void *)) {
-	const char *curr, *end = base + size * nmemb;
-	for (curr = base; curr <= end; curr += size) {
-		if (!cmp((void *) curr, key))
-			return curr;
-	}
-	return NULL;
-}
-
 char *dir_child(char *parent, char *child) {
 	size_t len = strlen(parent) + strlen(child);
 	char *res = malloc(len + 2);

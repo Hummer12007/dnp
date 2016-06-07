@@ -9,6 +9,11 @@
 
 #define STR_LEN 1024
 
+static struct pk_class *make_class(char *name, enum specialization, struct attrs base_attrs);
+static struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8_t str, enum dice d_type, uint8_t d_count);
+static struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count);
+static struct action *buff_action(char *name, enum target target, uint8_t speed_penalty, uint8_t dc, struct attrs dattrs);
+
 char *ser_attrs(struct attrs a) {
 	char *t = calloc(STR_LEN, 1);
 	sprintf(t, "%d,%d,%d,%d,%d,%d", a.STR, a.DEF, a.CON, a.MAG, a.DEX, a.LCK);
@@ -44,6 +49,26 @@ default:	case D20: return "d20";
 	}
 }
 
+char *ser_actt(enum action_type a) {
+	switch (a) {
+		case ACT_MELEE: return "melee";
+		case ACT_SPELL: return "spell";
+		case ACT_BUFF: return "buff";
+		default: return "melee";
+	}
+}
+
+char *ser_out(enum attack_outcome a) {
+	switch (a) {
+		case SUC_SAVED: return "saved";
+		case SUC_INEF: return "ineffective";
+		case SUC_WEAK: return "weak";
+		case SUC_NORM: return "hit";
+		case SUC_CRIT: return "critical hit";
+		default: return "";
+	}
+}
+
 static int atos8(char *c) {
 	int a = atoi(c);
 	if (a < INT8_MIN || a > INT8_MAX)
@@ -64,7 +89,7 @@ void *des_class(int argc, char **argv) {
 	if (argc > 8)
 		argc = 8;
 	char *name = strdup(argv[0]);
-	enum specialization spec = spec_from_str(argv[1]);
+	enum specialization spec = des_spec(argv[1]);
 	int attrs[6] = {0,};
 	if (spec == SP_NONE)
 		return NULL;
@@ -88,7 +113,7 @@ void *des_melee(int argc, char **argv) {
 		return NULL;
 	char *name = strdup(argv[0]);
 	uint8_t spd = atou8(argv[1]), dc = atou8(argv[2]), str = atou8(argv[3]), d_count = atou8(argv[5]);
-	enum dice d = dice_from_str(argv[4]);
+	enum dice d = des_dice(argv[4]);
 	if (!d)
 		return NULL;
 	return melee_action(name, spd, dc, str, d, d_count);
@@ -105,10 +130,10 @@ void *des_spell(int argc, char **argv) {
 	if (argc < 7)
 		return NULL;
 	char *name = strdup(argv[0]);
-	enum specialization spec = spec_from_str(argv[1]);
-	enum target target = target_from_str(argv[2]);
+	enum specialization spec = des_spec(argv[1]);
+	enum target target = des_target(argv[2]);
 	uint8_t spd = atou8(argv[3]), dc = atou8(argv[4]), d_count = atou8(argv[6]);
-	enum dice d = dice_from_str(argv[5]);
+	enum dice d = des_dice(argv[5]);
 	return spell_action(name, spec, target, spd, dc, d, d_count);
 }
 
@@ -126,7 +151,7 @@ void *des_buff(int argc, char **argv) {
 	if (argc > 10)
 		argc = 10;
 	char *name = strdup(argv[0]);
-	enum target target = target_from_str(argv[1]);
+	enum target target = des_target(argv[1]);
 	uint8_t spd = atou8(argv[2]), dc = atou8(argv[3]);
 	int attrs[6] = {0,};
 	for (int i = 0; i < argc - 4; ++i)
@@ -217,4 +242,63 @@ char *ser_pokemon(struct pkmn *p) {
 		ser_skills(p->skills));
 	free(c);
 	return buf;
+}
+
+enum specialization des_spec(char *c) {
+	if (!strcasecmp(c, "fire"))
+		return SP_FIRE;
+	else if (!strcasecmp(c, "water"))
+		return SP_WATER;
+	else if (!strcasecmp(c, "light"))
+		return SP_LIGHT;
+	else if (!strcasecmp(c, "dark"))
+		return SP_DARK;
+	else return SP_NONE;
+}
+
+enum target des_target(char *c) {
+	if (!strcasecmp(c, "self"))
+		return TARGET_SELF;
+	else if (!strcasecmp(c, "opponent"))
+		return TARGET_OPP;
+	return TARGET_OPP;
+}
+
+enum dice des_dice(char *c) {
+	static const enum dice ds[] = {D2, D4, D6, D8, D10, D12, D20, 0};
+	int dice, i = 0;
+	if (!c || (*c != 'd' && *c != 'D'))
+		return 0;
+	dice = atoi(++c);
+	while (ds[i] != 0)
+		if (ds[i++] == dice)
+			return dice;
+	return 0;
+}
+
+struct pk_class *make_class(char *name, enum specialization spec, struct attrs base_attrs) {
+	struct pk_class *res = malloc(sizeof(struct pk_class));
+	*res = (struct pk_class){.name = name, .spec = spec, .base_attributes = base_attrs};
+	return res;
+}
+
+struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8_t str, enum dice d_type, uint8_t d_count) {
+	struct action *res = malloc(sizeof(struct action));
+	struct action_data data = {dc, {str, d_type, d_count}, {0, 0, 0, 0}, {attrs()}};
+	*res = (struct action){.name = name, .type = ACT_MELEE, .target = TARGET_OPP, .speed_penalty = speed_penalty, .data = data};
+	return res;
+}
+
+struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count) {
+	struct action *res = malloc(sizeof(struct action));
+	struct action_data data = {dc, {0, 0, 0}, {spec != SP_NONE, spec, d_type, d_count}, {attrs()}};
+	*res = (struct action){.name = name, .type = ACT_SPELL, .target = target, .speed_penalty = speed_penalty, .data = data};
+	return res;
+}
+
+struct action *buff_action(char *name, enum target target, uint8_t speed_penalty, uint8_t dc, struct attrs dattrs) {
+	struct action *res = malloc(sizeof(struct action));
+	struct action_data data = {dc, {0, 0, 0}, {0, 0, 0, 0}, {dattrs}};
+	*res = (struct action){.name = name, .type = ACT_BUFF, .target = target, .speed_penalty = speed_penalty, .data = data};
+	return res;
 }
