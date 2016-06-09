@@ -39,6 +39,7 @@ struct player {
 };
 
 
+int sd;
 uint8_t global_level;
 struct player players[2];
 
@@ -139,6 +140,7 @@ void serv_attack(int n, struct action *a) {
 			players[1].character->alive ? "won" : "lost", "\n");
 		close(players[0].tsd);
 		close(players[1].tsd);
+		close(sd);
 	}
 	pthread_mutex_unlock(&mut);
 }
@@ -167,7 +169,7 @@ int main(int argc, char *argv[]) {
 	struct protoent *ptrp;
 	struct sockaddr_in sad;
 	struct sockaddr_in cad;
-	int sd, sd2;
+	int sd2;
 	int port;
 	socklen_t alen;
 	pthread_t tid;
@@ -222,10 +224,11 @@ int main(int argc, char *argv[]) {
 			fprintf(stderr, "accept failed\n");
 			exit(EXIT_FAILURE);
 		}
+		if (kaput)
+			break;
 		pthread_create(&tid, NULL, conn_handler, &sd2);
 	}
 
-	close(sd);
 }
 
 struct player players[2];
