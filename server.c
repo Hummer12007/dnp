@@ -67,9 +67,9 @@ void chat(int player, char *msg) {
 			send_stuff(players[i].tsd, chat_cl, "\n", name, ": ", msg, "\n", def_cl);
 }
 
-#define broadcast(...) for (int i = 0; i < 2; ++i)\
-	if (players[i].tsd)\
-		send_stuff(players[i].tsd, __VA_ARGS__)
+#define broadcast(...) for (int __i = 0; i < 2; ++__i)\
+	if (players[__i].tsd)\
+		send_stuff(players[__i].tsd, __VA_ARGS__)
 
 void bc_a_r(struct pk_attack_result r) {
 	char buf[16], buf1[64];
