@@ -22,13 +22,21 @@
 #define PROTOPORT         27428
 #define QLEN              10
 #define MAXRCVLEN 200
-#define STRLEN 200
 
 #define send_stuff(...) _send_stuff(__VA_ARGS__, NULL)
 
 void _send_stuff(int tsd, ...);
 
 void *conn_handler(void *parm);
+
+void chat(int, char *);
+void bc_a_r(struct pk_attack_result);
+void send_status(int);
+void serv_attack(int, struct action *);
+int add_player(char *, int);
+bool server_full(void);
+void send_class(void *, void *);
+void send_skill(void *, void *);
 
 struct player {
 	char *name;
@@ -39,24 +47,13 @@ struct player {
 };
 
 
-int sd;
-uint8_t global_level;
-struct player players[2];
+static int sd;
+static uint8_t global_level;
+static struct player players[2];
 
-bool kaput = false;
+static bool kaput = false;
 
-pthread_mutex_t mut;
-
-char *gs(uint8_t a) {
-	switch (a) {
-		case SUC_SAVED: return "SAVED";
-		case SUC_INEF: return "INEF";
-		case SUC_WEAK: return "WEAK";
-		case SUC_NORM: return "NORM";
-		case SUC_CRIT: return "CRIT";
-		default: return "";
-	}
-}
+static pthread_mutex_t mut;
 
 void chat(int player, char *msg) {
 	char *chat_cl = format_str(C_GREEN, C_FG);
@@ -67,7 +64,7 @@ void chat(int player, char *msg) {
 			send_stuff(players[i].tsd, chat_cl, "\n", name, ": ", msg, "\n", def_cl);
 }
 
-#define broadcast(...) for (int __i = 0; i < 2; ++__i)\
+#define broadcast(...) for (int __i = 0; __i < 2; ++__i)\
 	if (players[__i].tsd)\
 		send_stuff(players[__i].tsd, __VA_ARGS__)
 
@@ -78,7 +75,7 @@ void bc_a_r(struct pk_attack_result r) {
 		r.dattrs.MAG, r.dattrs.DEX, r.dattrs.LCK);
 	broadcast("Action: ", r.action->name,
 		". Target: ",r.target == TARGET_SELF ? "self" : "opponent",
-		". Outcome: ", gs(r.outcome),
+		". Outcome: ", ser_out(r.outcome),
 		". HP Change: ", buf,
 		". Attrs change: ", buf1);
 }
@@ -231,8 +228,6 @@ int main(int argc, char *argv[]) {
 
 }
 
-struct player players[2];
-
 void _send_stuff(int tsd, ...) {
 	char *c;
 	char buf[2048] = {'\0'};
@@ -244,12 +239,12 @@ void _send_stuff(int tsd, ...) {
 	send(tsd, buf, strlen(buf), 0);
 }
 
-void send_class(void *cls, void *data) {
-	send_stuff(*((int *)data), ((struct pk_class *)cls)->name, ", ");
+void send_class(void *cls, void *p) {
+	send_stuff(*((int *)p), ((struct pk_class *)cls)->name, ", ");
 }
 
 
-void send_skill(void *c, void *data) {
+void send_skill(void *c, void *p) {
 	struct action *a = c;
 	char buf[128];
 	char *cul = format_str(C_UL, C_FMT_ON),
@@ -257,29 +252,29 @@ void send_skill(void *c, void *data) {
 		*cb = format_str(C_BOLD, C_FMT_ON),
 		*cbo = format_str(C_BOLD, C_FMT_OFF);
 	sprintf(buf, "%u", a->data.dc_mod);
-	send_stuff(*((int *)data), cul, cb, a->name,cbo,  cul, " of type ",
+	send_stuff(*((int *)p), cul, cb, a->name,cbo,  cul, " of type ",
 		cul, cb, ser_actt(a->type), cbo, culo,
 		" targeting ", cul, a == TARGET_SELF ? "self" : "opponent", culo,
 		" with the difficulty class of ", buf);
 	switch (a->type) {
 	case ACT_MELEE:
 		sprintf(buf, "%u-%u", a->data.melee.d_count, a->data.melee.d_type * a->data.melee.d_count);
-		send_stuff(*((int *)data), " dealing ", cb,  buf, cbo, " of physical damage\n");
+		send_stuff(*((int *)p), " dealing ", cb,  buf, cbo, " of physical damage\n");
 		break;
 	case ACT_SPELL:
 		if (a->data.spell.specialization == SP_NONE) {
 			sprintf(buf, "%u-%u", a->data.spell.d_count, a->data.spell.d_type * a->data.spell.d_count);
-			send_stuff(*((int *)data), " healing ", cb, buf, cbo, " HP\n");
+			send_stuff(*((int *)p), " healing ", cb, buf, cbo, " HP\n");
 		} else {
 			sprintf(buf, "%u-%u", a->data.spell.d_count, a->data.spell.d_type * a->data.spell.d_count);
-			send_stuff(*((int *)data), " dealing ", cb, buf, cbo, " of ", ser_spec(a->data.spell.specialization), " damage\n");
+			send_stuff(*((int *)p), " dealing ", cb, buf, cbo, " of ", ser_spec(a->data.spell.specialization), " damage\n");
 		}
 	case ACT_BUFF:
 		{
 		struct attrs at = a->data.buff.d_attrs;
 		sprintf(buf, "%d STR, %d DEF, %d CON, %d MAG, %d DEX, %d LCK",
 			at.STR, at.DEF, at.CON, at.MAG, at.DEX, at.LCK);
-		send_stuff(*((int *)data), " changing the attributes as follows: ", buf, "\n");
+		send_stuff(*((int *)p), " changing the attributes as follows: ", buf, "\n");
 		}
 	}
 }

@@ -1,6 +1,7 @@
 #include "stats.h"
 #include "list.h"
 #include "data.h"
+#include "pokegen.h"
 
 #include <stdlib.h>
 

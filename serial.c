@@ -14,6 +14,18 @@ static struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc
 static struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count);
 static struct action *buff_action(char *name, enum target target, uint8_t speed_penalty, uint8_t dc, struct attrs dattrs);
 
+static char *ser_attrs(struct attrs);
+static char *ser_target(enum target);
+static char *ser_dice(uint8_t);
+static char *ser_skills(list_t *);
+static char *ser_bool(bool);
+
+static bool des_bool(char *);
+
+static void append_skill(void *, void *);
+static int name_in_list(void *, void *);
+static int same_name(void *, void *);
+
 char *ser_attrs(struct attrs a) {
 	char *t = calloc(STR_LEN, 1);
 	sprintf(t, "%d,%d,%d,%d,%d,%d", a.STR, a.DEF, a.CON, a.MAG, a.DEX, a.LCK);
@@ -137,14 +149,6 @@ void *des_spell(int argc, char **argv) {
 	return spell_action(name, spec, target, spd, dc, d, d_count);
 }
 
-char *ser_spell(struct action *a) {
-	char *buf = calloc(STR_LEN, 1);
-	sprintf(buf, "%s,%s,%s,%u,%u,%s,%u", a->name, ser_spec(a->data.spell.specialization),
-		ser_target(a->target), a->speed_penalty, a->data.dc_mod,
-		ser_dice(a->data.spell.d_type), a->data.spell.d_count);
-	return buf;
-}
-
 void *des_buff(int argc, char **argv) {
 	if (argc < 4)
 		return NULL;
@@ -196,18 +200,18 @@ char *ser_skills(list_t *skills) {
 	return buf;
 }
 
-int name_in_list(void *key, void *data) {
+int name_in_list(void *key, void *action) {
 	char **names = (char **)key;
-	struct action *a = (struct action *)data;
+	struct action *a = (struct action *)action;
 	for (char *c = *names; c != NULL; c++)
 		if (!strcasecmp(a->name, c))
 			return true;
 	return false;
 }
 
-int same_name(void *key, void *data) {
+int same_name(void *key, void *clazz) {
 	char *name = (char *)key;
-	struct pk_class *cls = (struct pk_class *)data;
+	struct pk_class *cls = (struct pk_class *)clazz;
 	if (!strcasecmp(name, cls->name))
 		return true;
 	return false;
@@ -276,29 +280,29 @@ enum dice des_dice(char *c) {
 	return 0;
 }
 
-struct pk_class *make_class(char *name, enum specialization spec, struct attrs base_attrs) {
+struct pk_class *make_class(char *name, enum specialization spec, struct attrs base) {
 	struct pk_class *res = malloc(sizeof(struct pk_class));
-	*res = (struct pk_class){.name = name, .spec = spec, .base_attributes = base_attrs};
+	*res = (struct pk_class){.name = name, .spec = spec, .base_attributes = base};
 	return res;
 }
 
 struct action *melee_action(char *name, uint8_t speed_penalty, uint8_t dc, uint8_t str, enum dice d_type, uint8_t d_count) {
 	struct action *res = malloc(sizeof(struct action));
-	struct action_data data = {dc, {str, d_type, d_count}, {0, 0, 0, 0}, {attrs()}};
-	*res = (struct action){.name = name, .type = ACT_MELEE, .target = TARGET_OPP, .speed_penalty = speed_penalty, .data = data};
+	struct action_data m_data = {dc, {str, d_type, d_count}, {0, 0, 0, 0}, {attrs()}};
+	*res = (struct action){.name = name, .type = ACT_MELEE, .target = TARGET_OPP, .speed_penalty = speed_penalty, .data = m_data};
 	return res;
 }
 
 struct action *spell_action(char *name, enum specialization spec, enum target target, uint8_t speed_penalty, uint8_t dc, enum dice d_type, uint8_t d_count) {
 	struct action *res = malloc(sizeof(struct action));
-	struct action_data data = {dc, {0, 0, 0}, {spec != SP_NONE, spec, d_type, d_count}, {attrs()}};
-	*res = (struct action){.name = name, .type = ACT_SPELL, .target = target, .speed_penalty = speed_penalty, .data = data};
+	struct action_data s_data = {dc, {0, 0, 0}, {spec != SP_NONE, spec, d_type, d_count}, {attrs()}};
+	*res = (struct action){.name = name, .type = ACT_SPELL, .target = target, .speed_penalty = speed_penalty, .data = s_data};
 	return res;
 }
 
 struct action *buff_action(char *name, enum target target, uint8_t speed_penalty, uint8_t dc, struct attrs dattrs) {
 	struct action *res = malloc(sizeof(struct action));
-	struct action_data data = {dc, {0, 0, 0}, {0, 0, 0, 0}, {dattrs}};
-	*res = (struct action){.name = name, .type = ACT_BUFF, .target = target, .speed_penalty = speed_penalty, .data = data};
+	struct action_data a_data = {dc, {0, 0, 0}, {0, 0, 0, 0}, {dattrs}};
+	*res = (struct action){.name = name, .type = ACT_BUFF, .target = target, .speed_penalty = speed_penalty, .data = a_data};
 	return res;
 }

@@ -13,9 +13,11 @@ static size_t attr_offsets[6] = {so(STR), so(DEF), so(CON), so(MAG), so(DEX), so
 #undef so
 static size_t increments[6] = {1, 1, 1, 1, 1, 1};
 int attack_efficiency[SP_NONE][SP_NONE] = {{0, 5, -5, 10}, {5, 0, 10, -5}, {-5, 5, 0, 10}, {-10, 5, 10, 0}};
-struct attrs attr_caps = {-1, -1, -1, -1, -1, 20};
+static struct attrs attr_caps = {-1, -1, -1, -1, -1, 20};
 
 #define gattr(x, attr) ((int8_t *)((int8_t *)(&(x)) + attr_offsets[attr]))
+
+static void enforce_caps(struct attrs *);
 
 void enforce_caps(struct attrs *attrs) {
 	int8_t *dst, *cap;
@@ -102,7 +104,6 @@ static enum attack_outcome calc_attack_success(struct pkmn *first, struct pkmn *
 					o = SUC_SAVED;
 			return o;
 		} else {
-			enum attack_outcome o;
 			uint8_t dice = throw_dice(D20, 1, first);
 			if (dice > 18)
 				o = SUC_CRIT;

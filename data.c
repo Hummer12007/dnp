@@ -79,16 +79,16 @@ bool init_game_data() {
 list_t *get_actions() { return data.action_storage; }
 list_t *get_classes() { return data.pk_class_storage; }
 
-int act_cmp(void *key, void *data) {
-	char *keyname = (char *)key, *dataname = ((struct action *)data)->name;
+int act_cmp(void *key, void *p) {
+	char *keyname = (char *)key, *dataname = ((struct action *)p)->name;
 	return strcasecmp(keyname, dataname);
 }
 struct action *get_action(char *name) {
 	return list_search(name, data.action_storage, act_cmp);
 }
 
-int cls_cmp(void *key, void *data) {
-	char *keyname = (char *)key, *dataname = ((struct pk_class *)data)->name;
+int cls_cmp(void *key, void *p) {
+	char *keyname = (char *)key, *dataname = ((struct pk_class *)p)->name;
 	return strcasecmp(keyname, dataname);
 }
 struct pk_class *get_class(char *name) {
